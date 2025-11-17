@@ -1,0 +1,37 @@
+import { Marketplace } from '@/types';
+
+export const MARKETPLACES: Marketplace[] = [
+  {
+    id: 'falabella',
+    name: 'Falabella',
+    domain: 'falabella.com',
+    logo: '/logos/falabella.png',
+    enabled: true,
+    selectors: {
+      price: '.price-0',
+      name: '.product-name',
+      availability: '.stock-status',
+      image: '.product-image img'
+    }
+  },
+  {
+    id: 'exito',
+    name: 'Éxito',
+    domain: 'exito.com',
+    logo: '/logos/exito.png',
+    enabled: true,
+    selectors: {
+      price: '.product-price',
+      name: '.product-name',
+      availability: '.stock-info',
+      image: '.product-image img'
+    }
+  }
+];
+
+export const CURRENCIES = {
+  USD: '$',
+  COP: '$',
+  PEN: 'S/'
+};
+
