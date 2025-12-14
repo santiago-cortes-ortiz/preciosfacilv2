@@ -1,6 +1,6 @@
 # 🛒 PreciosFacil v2
 
-Una aplicación moderna de comparación de precios que utiliza web scraping para obtener precios en tiempo real de diferentes marketplaces peruanos.
+Una aplicación moderna de comparación de precios que utiliza web scraping para obtener precios en tiempo real de diferentes marketplaces.
 
 ## 🚀 Características
 
