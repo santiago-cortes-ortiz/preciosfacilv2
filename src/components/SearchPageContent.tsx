@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Container,
   Typography,
@@ -38,6 +38,7 @@ export default function SearchPageContent() {
     MARKETPLACES.filter(m => m.enabled).map(m => m.id)
   );
   const [hasSearched, setHasSearched] = useState(false);
+  const resultsRef = useRef<HTMLDivElement | null>(null);
 
   const { data: searchResults, isLoading, error, refetch } = useQuery<SearchResult>({
     queryKey: ['search', searchQuery, selectedMarketplaces],
@@ -180,6 +181,12 @@ export default function SearchPageContent() {
     enabled: false,
   });
 
+  useEffect(() => {
+    if (hasSearched && searchResults) {
+      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [hasSearched, searchResults]);
+
   const handleSearch = () => {
     if (!searchQuery.trim()) {
       toast.warning('Por favor ingresa un término de búsqueda');
@@ -266,7 +273,7 @@ export default function SearchPageContent() {
 
             {searchResults && !isLoading && (
               <Fade in timeout={600}>
-                <Box>
+                <Box ref={resultsRef}>
                   <Box sx={{ 
                     display: 'flex', 
                     justifyContent: 'space-between', 
