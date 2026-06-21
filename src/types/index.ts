@@ -51,6 +51,7 @@ export interface SearchFilters {
   minPrice?: number;
   maxPrice?: number;
   marketplaces?: string[];
+  limit?: number;
   sortBy?: 'price_asc' | 'price_desc' | 'name' | 'relevance';
 }
 

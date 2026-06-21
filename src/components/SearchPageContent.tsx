@@ -15,13 +15,11 @@ import {
   Stack,
   Fade,
   Grow,
-  Rating,
   Divider,
 } from '@mui/material';
 import {
   ShoppingCart as ShoppingCartIcon,
   Visibility as VisibilityIcon,
-  LocalOffer as LocalOfferIcon,
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
@@ -29,8 +27,6 @@ import { SearchResult } from '@/types';
 import { MARKETPLACES } from '@/constants/marketplaces';
 import Navbar from './Navbar';
 import Hero from './Hero';
-
-const FIXED_DATE = new Date('2024-01-01T00:00:00Z');
 
 export default function SearchPageContent() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -43,140 +39,19 @@ export default function SearchPageContent() {
   const { data: searchResults, isLoading, error, refetch } = useQuery<SearchResult>({
     queryKey: ['search', searchQuery, selectedMarketplaces],
     queryFn: async () => {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const params = new URLSearchParams({ query: searchQuery, limit: '20' });
+      selectedMarketplaces.forEach((marketplace) => {
+        params.append('marketplaces', marketplace);
+      });
 
-      return {
-        products: [
-          {
-            id: 'mock-1',
-            name: 'Televisor Samsung 55" QLED 4K Smart TV',
-            description: 'Televisor con tecnología QLED y resolución 4K',
-            image: 'https://via.placeholder.com/300x300?text=TV+Samsung',
-            category: 'Electrónica',
-            brand: 'Samsung',
-            specifications: { 'Tamaño': '55"', 'Resolución': '4K' },
-            createdAt: FIXED_DATE,
-            updatedAt: FIXED_DATE,
-          },
-          {
-            id: 'mock-2',
-            name: 'iPhone 15 Pro Max 256GB',
-            description: 'Último modelo de iPhone con chip A17',
-            image: 'https://via.placeholder.com/300x300?text=iPhone+15',
-            category: 'Celulares',
-            brand: 'Apple',
-            specifications: { 'Almacenamiento': '256GB', 'Color': 'Negro' },
-            createdAt: FIXED_DATE,
-            updatedAt: FIXED_DATE,
-          },
-          {
-            id: 'mock-3',
-            name: 'Nevera LG Side by Side 592L',
-            description: 'Nevera con dispensador de agua y hielo',
-            image: 'https://via.placeholder.com/300x300?text=Nevera+LG',
-            category: 'Electrodomésticos',
-            brand: 'LG',
-            specifications: { 'Capacidad': '592L', 'Tipo': 'Side by Side' },
-            createdAt: FIXED_DATE,
-            updatedAt: FIXED_DATE,
-          },
-          {
-            id: 'mock-4',
-            name: 'Laptop HP Pavilion 15 Intel i7',
-            description: 'Laptop con procesador Intel i7 11va generación',
-            image: 'https://via.placeholder.com/300x300?text=Laptop+HP',
-            category: 'Computadores',
-            brand: 'HP',
-            specifications: { 'Procesador': 'Intel i7', 'RAM': '16GB' },
-            createdAt: FIXED_DATE,
-            updatedAt: FIXED_DATE,
-          },
-        ],
-        prices: [
-          {
-            id: 'price-1',
-            productId: 'mock-1',
-            marketplace: 'falabella',
-            url: 'https://falabella.com/example',
-            price: 2999990,
-            currency: 'COP',
-            availability: true,
-            lastChecked: FIXED_DATE,
-          },
-          {
-            id: 'price-2',
-            productId: 'mock-1',
-            marketplace: 'exito',
-            url: 'https://exito.com/example',
-            price: 2849990,
-            currency: 'COP',
-            availability: true,
-            lastChecked: FIXED_DATE,
-          },
-          {
-            id: 'price-3',
-            productId: 'mock-2',
-            marketplace: 'falabella',
-            url: 'https://falabella.com/example',
-            price: 6299990,
-            currency: 'COP',
-            availability: true,
-            lastChecked: FIXED_DATE,
-          },
-          {
-            id: 'price-4',
-            productId: 'mock-2',
-            marketplace: 'exito',
-            url: 'https://exito.com/example',
-            price: 5999990,
-            currency: 'COP',
-            availability: true,
-            lastChecked: FIXED_DATE,
-          },
-          {
-            id: 'price-5',
-            productId: 'mock-3',
-            marketplace: 'falabella',
-            url: 'https://falabella.com/example',
-            price: 3499990,
-            currency: 'COP',
-            availability: true,
-            lastChecked: FIXED_DATE,
-          },
-          {
-            id: 'price-6',
-            productId: 'mock-3',
-            marketplace: 'exito',
-            url: 'https://exito.com/example',
-            price: 3299990,
-            currency: 'COP',
-            availability: true,
-            lastChecked: FIXED_DATE,
-          },
-          {
-            id: 'price-7',
-            productId: 'mock-4',
-            marketplace: 'falabella',
-            url: 'https://falabella.com/example',
-            price: 2799990,
-            currency: 'COP',
-            availability: true,
-            lastChecked: FIXED_DATE,
-          },
-          {
-            id: 'price-8',
-            productId: 'mock-4',
-            marketplace: 'exito',
-            url: 'https://exito.com/example',
-            price: 2699990,
-            currency: 'COP',
-            availability: true,
-            lastChecked: FIXED_DATE,
-          },
-        ],
-        totalResults: 4,
-        marketplaces: MARKETPLACES.filter(m => selectedMarketplaces.includes(m.id)),
-      };
+      const response = await fetch(`/api/scraping?${params.toString()}`);
+      const payload = await response.json();
+
+      if (!response.ok || !payload.success) {
+        throw new Error(payload.error || 'Error al buscar productos');
+      }
+
+      return payload.data as SearchResult;
     },
     enabled: false,
   });
@@ -271,7 +146,13 @@ export default function SearchPageContent() {
               </Box>
             )}
 
-            {searchResults && !isLoading && (
+            {searchResults && !isLoading && searchResults.products.length === 0 && (
+              <Alert severity="info" sx={{ mb: 3, borderRadius: 2 }}>
+                No encontramos productos para &quot;{searchQuery}&quot; en Éxito.
+              </Alert>
+            )}
+
+            {searchResults && !isLoading && searchResults.products.length > 0 && (
               <Fade in timeout={600}>
                 <Box ref={resultsRef}>
                   <Box sx={{ 
@@ -393,10 +274,11 @@ export default function SearchPageContent() {
                                 </Typography>
 
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                                  <Rating value={4.5} precision={0.5} size="small" readOnly />
-                                  <Typography variant="caption" color="text.secondary">
-                                    127 opiniones
-                                  </Typography>
+                                  <Chip
+                                    label={product.category}
+                                    size="small"
+                                    variant="outlined"
+                                  />
                                 </Box>
 
                                 <Divider sx={{ my: 1.5 }} />
@@ -450,6 +332,10 @@ export default function SearchPageContent() {
                                     variant="text"
                                     fullWidth
                                     startIcon={<VisibilityIcon />}
+                                    href={productPrices[0]?.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    component="a"
                                     sx={{
                                       borderRadius: 2,
                                       fontWeight: 600,

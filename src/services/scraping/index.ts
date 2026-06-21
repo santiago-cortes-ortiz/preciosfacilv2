@@ -1,17 +1,30 @@
-import { MercadoLibreScraper } from './mercadolibre';
-import { PriceData, SearchResult, SearchFilters } from '@/types';
+import { ExitoScraper } from './exito';
+import { PriceData, Product, SearchResult, SearchFilters } from '@/types';
 import { MARKETPLACES } from '@/constants/marketplaces';
 
+interface ScraperProduct {
+  id: string;
+  name: string;
+  description?: string;
+  image?: string;
+  category: string;
+  brand?: string;
+  url: string;
+  price: number;
+  originalPrice?: number;
+  currency?: string;
+  availability?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
 export class ScrapingService {
-  private scrapers: Map<string, any> = new Map();
+  private scrapers: Map<string, ExitoScraper> = new Map();
 
   constructor() {
-    this.scrapers.set('mercadolibre', new MercadoLibreScraper());
+    this.scrapers.set('exito', new ExitoScraper());
   }
 
-  /**
-   * Obtener precio de un producto específico
-   */
   async getPrice(url: string): Promise<PriceData | null> {
     const marketplace = this.getMarketplaceFromUrl(url);
     if (!marketplace) {
@@ -23,12 +36,9 @@ export class ScrapingService {
       return null;
     }
 
-    return await scraper.scrapePrice(url);
+    return scraper.scrapePrice(url);
   }
 
-  /**
-   * Buscar productos en múltiples marketplaces
-   */
   async searchProducts(filters: SearchFilters): Promise<SearchResult> {
     const { query, marketplaces: marketplaceIds } = filters;
 
@@ -37,88 +47,88 @@ export class ScrapingService {
         products: [],
         prices: [],
         totalResults: 0,
-        marketplaces: []
+        marketplaces: [],
       };
     }
 
-    const enabledMarketplaces = MARKETPLACES.filter(m =>
-      m.enabled && (!marketplaceIds || marketplaceIds.includes(m.id))
+    const enabledMarketplaces = MARKETPLACES.filter(
+      (m) => m.enabled && (!marketplaceIds || marketplaceIds.includes(m.id))
     );
 
     const results = await Promise.allSettled(
       enabledMarketplaces.map(async (marketplace) => {
         const scraper = this.scrapers.get(marketplace.id);
         if (!scraper) {
-          return { marketplace: marketplace.id, products: [], error: 'Scraper not available' };
+          return { marketplace: marketplace.id, products: [] as ScraperProduct[] };
         }
 
-        try {
-          const products = await scraper.searchProducts(query, {
-            limit: 10,
-            category: filters.category
-          });
+        const products = await scraper.searchProducts(query, {
+          limit: filters.limit ?? 20,
+        });
 
-          return { marketplace: marketplace.id, products };
-        } catch (error) {
-          return { marketplace: marketplace.id, products: [], error: error instanceof Error ? error.message : 'Unknown error' };
-        }
+        return { marketplace: marketplace.id, products };
       })
     );
 
-    const allProducts: any[] = [];
+    const allProducts: Product[] = [];
     const allPrices: PriceData[] = [];
 
-    results.forEach((result, index) => {
-      if (result.status === 'fulfilled') {
-        const { marketplace, products } = result.value;
-        products.forEach((product: any) => {
-          allProducts.push(product);
-          allPrices.push({
-            id: `${marketplace}_${product.id}_${Date.now()}`,
-            productId: product.id,
-            marketplace,
-            url: product.url,
-            price: product.price,
-            currency: 'PEN',
-            availability: true,
-            lastChecked: new Date()
-          });
+    results.forEach((result) => {
+      if (result.status !== 'fulfilled') return;
+
+      const { marketplace, products } = result.value;
+
+      products.forEach((product) => {
+        allProducts.push({
+          id: product.id,
+          name: product.name,
+          description: product.description,
+          image: product.image,
+          category: product.category,
+          brand: product.brand,
+          specifications: {},
+          createdAt: product.createdAt ?? new Date(),
+          updatedAt: product.updatedAt ?? new Date(),
         });
-      }
+
+        allPrices.push({
+          id: `${marketplace}_${product.id}_${Date.now()}`,
+          productId: product.id,
+          marketplace,
+          url: product.url,
+          price: product.price,
+          originalPrice: product.originalPrice,
+          currency: product.currency ?? 'COP',
+          availability: product.availability ?? true,
+          lastChecked: new Date(),
+        });
+      });
     });
 
     return {
       products: allProducts,
       prices: allPrices,
       totalResults: allProducts.length,
-      marketplaces: enabledMarketplaces
+      marketplaces: enabledMarketplaces,
     };
   }
 
-  /**
-   * Obtener precios de múltiples URLs
-   */
   async getPrices(urls: string[]): Promise<PriceData[]> {
-    const results = await Promise.allSettled(
-      urls.map(url => this.getPrice(url))
-    );
+    const results = await Promise.allSettled(urls.map((url) => this.getPrice(url)));
 
     return results
-      .filter((result): result is PromiseFulfilledResult<PriceData> =>
-        result.status === 'fulfilled' && result.value !== null
+      .filter(
+        (result): result is PromiseFulfilledResult<PriceData> =>
+          result.status === 'fulfilled' && result.value !== null
       )
-      .map(result => result.value);
+      .map((result) => result.value);
   }
 
-  /**
-   * Determinar marketplace desde URL
-   */
-  private getMarketplaceFromUrl(url: string): any {
+  private getMarketplaceFromUrl(url: string) {
     try {
-      const urlObj = new URL(url);
-      const domain = urlObj.hostname.toLowerCase();
+      const domain = new URL(url).hostname.toLowerCase();
 
-      return MARKETPLACES.find(marketplace =>
+      return MARKETPLACES.find((marketplace) =>
         domain.includes(marketplace.domain.toLowerCase())
       );
     } catch {
@@ -126,13 +136,9 @@ export class ScrapingService {
     }
   }
 
-  /**
-   * Obtener marketplaces disponibles
-   */
   getAvailableMarketplaces() {
-    return MARKETPLACES.filter(m => m.enabled);
+    return MARKETPLACES.filter((m) => m.enabled);
   }
 }
 
 export const scrapingService = new ScrapingService();
-

@@ -6,7 +6,7 @@ export const MARKETPLACES: Marketplace[] = [
     name: 'Falabella',
     domain: 'falabella.com',
     logo: '/logos/falabella.png',
-    enabled: true,
+    enabled: false,
     selectors: {
       price: '.price-0',
       name: '.product-name',
