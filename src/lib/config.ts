@@ -48,8 +48,8 @@ export const config = {
   },
 
   search: {
-    maxResults: 50,
-    defaultLimit: 20,
+    maxResults: 20,
+    defaultLimit: 15,
     minQueryLength: 2,
     maxQueryLength: 100,
   },

@@ -9,7 +9,7 @@ const searchSchema = z.object({
   query: z.string().min(1, 'La búsqueda no puede estar vacía'),
   category: z.string().optional(),
   marketplaces: z.array(z.string()).optional(),
-  limit: z.number().min(1).max(50).optional().default(20),
+  limit: z.number().min(1).max(20).optional().default(15),
 });
 
 const priceSchema = z.object({

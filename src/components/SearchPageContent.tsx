@@ -39,7 +39,7 @@ export default function SearchPageContent() {
   const { data: searchResults, isLoading, error, refetch } = useQuery<SearchResult>({
     queryKey: ['search', searchQuery, selectedMarketplaces],
     queryFn: async () => {
-      const params = new URLSearchParams({ query: searchQuery, limit: '20' });
+      const params = new URLSearchParams({ query: searchQuery, limit: '15' });
       selectedMarketplaces.forEach((marketplace) => {
         params.append('marketplaces', marketplace);
       });

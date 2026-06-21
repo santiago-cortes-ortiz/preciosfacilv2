@@ -63,7 +63,7 @@ export class ScrapingService {
         }
 
         const products = await scraper.searchProducts(query, {
-          limit: filters.limit ?? 20,
+          limit: filters.limit ?? 15,
         });
 
         return { marketplace: marketplace.id, products };

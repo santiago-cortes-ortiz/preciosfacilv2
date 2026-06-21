@@ -79,7 +79,7 @@ export class ExitoScraper extends BaseScraper {
     query: string,
     options: { limit?: number; page?: number } = {}
   ): Promise<ExitoSearchProduct[]> {
-    const limit = options.limit ?? 20;
+    const limit = options.limit ?? 15;
     const page = options.page ?? 0;
     const from = page * limit;
     const to = from + limit - 1;
