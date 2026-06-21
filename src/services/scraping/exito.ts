@@ -1,7 +1,9 @@
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 import { BaseScraper } from './base';
 import { PriceData } from '@/types';
 import { MARKETPLACES } from '@/constants/marketplaces';
+import { config } from '@/lib/config';
+import { RateLimiter } from '@/utils/rateLimiter';
 import logger from '@/utils/logger';
 
 interface VtexCommercialOffer {
@@ -52,6 +54,8 @@ export class ExitoScraper extends BaseScraper {
   private readonly searchBaseUrl =
     'https://www.exito.com/api/catalog_system/pub/products/search';
 
+  private readonly rateLimiter = new RateLimiter(config.scraping.exitoMaxRpm, 60_000);
+
   constructor() {
     super(MARKETPLACES.find((m) => m.id === 'exito')!);
   }
@@ -81,7 +85,7 @@ export class ExitoScraper extends BaseScraper {
     const to = from + limit - 1;
 
     try {
-      const response = await axios.get<VtexProduct[]>(
+      const response = await this.request<VtexProduct[]>(
         `${this.searchBaseUrl}/${encodeURIComponent(query)}`,
         {
           params: {
@@ -89,9 +93,6 @@ export class ExitoScraper extends BaseScraper {
             _from: from,
             _to: to,
           },
-          headers: this.getHeaders(),
-          timeout: 15000,
-          validateStatus: (status) => status >= 200 && status < 300,
         }
       );
 
@@ -108,13 +109,26 @@ export class ExitoScraper extends BaseScraper {
     const slug = this.extractSlug(url);
     if (!slug) return null;
 
-    const response = await axios.get<VtexProduct[]>(`${this.searchBaseUrl}/${slug}`, {
-      headers: this.getHeaders(),
-      timeout: 15000,
-      validateStatus: (status) => status >= 200 && status < 300,
-    });
+    const response = await this.request<VtexProduct[]>(`${this.searchBaseUrl}/${slug}`);
 
     return response.data[0] ?? null;
+  }
+
+  private async request<T>(url: string, options: AxiosRequestConfig = {}) {
+    await this.rateLimiter.acquire();
+
+    logger.debug('Éxito API request', {
+      url,
+      remainingRpm: this.rateLimiter.remaining,
+      maxRpm: config.scraping.exitoMaxRpm,
+    });
+
+    return axios.get<T>(url, {
+      ...options,
+      headers: { ...this.getHeaders(), ...options.headers },
+      timeout: config.scraping.timeout,
+      validateStatus: (status) => status >= 200 && status < 300,
+    });
   }
 
   private mapProduct(product: VtexProduct): ExitoSearchProduct {

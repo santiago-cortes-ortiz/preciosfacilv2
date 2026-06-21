@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { scrapingService } from '@/services/scraping';
 import { ApiResponse, SearchResult, SearchFilters } from '@/types';
+import { enforceApiRateLimit } from '@/lib/apiRateLimit';
 import logger from '@/utils/logger';
 
 const searchSchema = z.object({
@@ -16,6 +17,9 @@ const priceSchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
+  const rateLimitResponse = enforceApiRateLimit(request);
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     const { searchParams } = new URL(request.url);
 
@@ -68,6 +72,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const rateLimitResponse = enforceApiRateLimit(request);
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     const body = await request.json();
 
