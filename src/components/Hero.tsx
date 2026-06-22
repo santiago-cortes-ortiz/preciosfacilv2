@@ -7,16 +7,19 @@ import {
   TextField,
   InputAdornment,
   Button,
-  Chip,
   Paper,
+  Checkbox,
+  FormControlLabel,
 } from '@mui/material';
 import {
   Search as SearchIcon,
-  TrendingUp as TrendingUpIcon,
   Verified as VerifiedIcon,
   LocalShipping as LocalShippingIcon,
   Savings as SavingsIcon,
 } from '@mui/icons-material';
+import { getMarketplaceUi } from '@/constants/marketplaces';
+
+const EXITO_UI = getMarketplaceUi('exito')!;
 
 interface HeroProps {
   searchQuery: string;
@@ -137,7 +140,7 @@ export default function Hero({
                 fontSize: '1rem',
                 fontWeight: 600,
                 borderRadius: 2,
-                textTransform: 'none'
+                textTransform: 'none',
               }}
             >
               {isLoading ? 'Buscando...' : 'Buscar'}
@@ -148,20 +151,45 @@ export default function Hero({
             <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center' }}>
               Comparar en:
             </Typography>
-            {marketplaces.map((marketplace) => (
-              <Chip
-                key={marketplace.id}
-                label={marketplace.name}
-                color={selectedMarketplaces.includes(marketplace.id) ? "primary" : "default"}
-                onClick={() => onMarketplaceToggle(marketplace.id)}
-                variant={selectedMarketplaces.includes(marketplace.id) ? "filled" : "outlined"}
-                sx={{ 
-                  fontWeight: 500,
-                  borderRadius: 2,
-                  backgroundColor: selectedMarketplaces.includes(marketplace.id) ? 'primary.light' : 'transparent'
-                }}
-              />
-            ))}
+            {marketplaces.filter((m) => m.enabled).map((marketplace) => {
+              const selected = selectedMarketplaces.includes(marketplace.id);
+              const ui = getMarketplaceUi(marketplace.id);
+              const isExito = marketplace.id === 'exito';
+
+              return (
+                <FormControlLabel
+                  key={marketplace.id}
+                  control={
+                    <Checkbox
+                      checked={selected}
+                      onChange={() => onMarketplaceToggle(marketplace.id)}
+                      sx={
+                        isExito
+                          ? {
+                              color: EXITO_UI.border,
+                              '&.Mui-checked': {
+                                color: EXITO_UI.checkbox,
+                              },
+                            }
+                          : undefined
+                      }
+                    />
+                  }
+                  label={marketplace.name}
+                  sx={{
+                    m: 0,
+                    px: 1.5,
+                    py: 0.5,
+                    borderRadius: 2,
+                    border: '1px solid',
+                    borderColor: selected && ui ? ui.border : 'divider',
+                    bgcolor: selected && ui ? ui.bgLight : 'transparent',
+                    color: selected && ui ? ui.text : 'text.primary',
+                    fontWeight: selected ? 600 : 500,
+                  }}
+                />
+              );
+            })}
           </Box>
         </Paper>
 

@@ -24,9 +24,11 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import { SearchResult } from '@/types';
-import { MARKETPLACES } from '@/constants/marketplaces';
+import { MARKETPLACES, getMarketplaceUi } from '@/constants/marketplaces';
 import Navbar from './Navbar';
 import Hero from './Hero';
+
+const EXITO_UI = getMarketplaceUi('exito')!;
 
 export default function SearchPageContent() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -301,6 +303,7 @@ export default function SearchPageContent() {
                                   {productPrices.sort((a, b) => a.price - b.price).map((price) => {
                                     const marketplace = MARKETPLACES.find(m => m.id === price.marketplace);
                                     const isLowest = lowestPrice && price.price === lowestPrice.price;
+                                    const isExito = price.marketplace === 'exito';
 
                                     return (
                                       <Box
@@ -312,8 +315,17 @@ export default function SearchPageContent() {
                                           p: 1,
                                           borderRadius: 2,
                                           border: '1px solid',
-                                          borderColor: isLowest ? 'primary.main' : 'divider',
-                                          bgcolor: isLowest ? 'primary.light' : 'grey.50'
+                                          borderColor: isExito
+                                            ? EXITO_UI.border
+                                            : isLowest
+                                              ? 'primary.main'
+                                              : 'divider',
+                                          bgcolor: isExito
+                                            ? EXITO_UI.bgLight
+                                            : isLowest
+                                              ? 'primary.light'
+                                              : 'grey.50',
+                                          color: isExito ? EXITO_UI.text : 'inherit',
                                         }}
                                       >
                                         <Typography variant="body2" fontWeight={isLowest ? 600 : 500}>
@@ -329,7 +341,7 @@ export default function SearchPageContent() {
 
                                 <Stack spacing={1}>
                                   <Button
-                                    variant="text"
+                                    variant="contained"
                                     fullWidth
                                     startIcon={<VisibilityIcon />}
                                     href={productPrices[0]?.url}
@@ -339,22 +351,38 @@ export default function SearchPageContent() {
                                     sx={{
                                       borderRadius: 2,
                                       fontWeight: 600,
-                                      textTransform: 'none'
+                                      textTransform: 'none',
+                                      bgcolor: EXITO_UI.bg,
+                                      color: EXITO_UI.text,
+                                      '&:hover': {
+                                        bgcolor: EXITO_UI.border,
+                                      },
                                     }}
                                   >
-                                    Ver detalles
+                                    Ver en Éxito
                                   </Button>
                                   <Button
                                     variant="outlined"
                                     fullWidth
                                     startIcon={<ShoppingCartIcon />}
+                                    href={productPrices[0]?.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    component="a"
                                     sx={{
                                       borderRadius: 2,
                                       fontWeight: 600,
-                                      textTransform: 'none'
+                                      textTransform: 'none',
+                                      borderColor: EXITO_UI.border,
+                                      color: EXITO_UI.text,
+                                      bgcolor: EXITO_UI.bgLight,
+                                      '&:hover': {
+                                        borderColor: EXITO_UI.checkbox,
+                                        bgcolor: EXITO_UI.bg,
+                                      },
                                     }}
                                   >
-                                    Comparar precios
+                                    Ir a comprar
                                   </Button>
                                 </Stack>
                               </CardContent>

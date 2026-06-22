@@ -35,3 +35,20 @@ export const CURRENCIES = {
   PEN: 'S/'
 };
 
+export const MARKETPLACE_UI: Record<
+  string,
+  { bg: string; bgLight: string; border: string; text: string; checkbox: string }
+> = {
+  exito: {
+    bg: '#FFD54F',
+    bgLight: '#FFF9C4',
+    border: '#FBC02D',
+    text: '#5D4037',
+    checkbox: '#F9A825',
+  },
+};
+
+export function getMarketplaceUi(id: string) {
+  return MARKETPLACE_UI[id];
+}
+
