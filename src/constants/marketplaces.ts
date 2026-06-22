@@ -6,7 +6,7 @@ export const MARKETPLACES: Marketplace[] = [
     name: 'Falabella',
     domain: 'falabella.com',
     logo: '/logos/falabella.png',
-    enabled: false,
+    enabled: true,
     selectors: {
       price: '.price-0',
       name: '.product-name',
@@ -39,6 +39,13 @@ export const MARKETPLACE_UI: Record<
   string,
   { bg: string; bgLight: string; border: string; text: string; checkbox: string }
 > = {
+  falabella: {
+    bg: '#E8F5E9',
+    bgLight: '#C8E6C9',
+    border: '#66BB6A',
+    text: '#1B5E20',
+    checkbox: '#43A047',
+  },
   exito: {
     bg: '#FFD54F',
     bgLight: '#FFF9C4',

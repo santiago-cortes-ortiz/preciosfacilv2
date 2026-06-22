@@ -20,6 +20,7 @@ import {
 import { getMarketplaceUi } from '@/constants/marketplaces';
 
 const EXITO_UI = getMarketplaceUi('exito')!;
+const FALABELLA_UI = getMarketplaceUi('falabella')!;
 
 interface HeroProps {
   searchQuery: string;
@@ -154,6 +155,7 @@ export default function Hero({
             {marketplaces.filter((m) => m.enabled).map((marketplace) => {
               const selected = selectedMarketplaces.includes(marketplace.id);
               const ui = getMarketplaceUi(marketplace.id);
+              const isFalabella = marketplace.id === 'falabella';
               const isExito = marketplace.id === 'exito';
 
               return (
@@ -164,7 +166,14 @@ export default function Hero({
                       checked={selected}
                       onChange={() => onMarketplaceToggle(marketplace.id)}
                       sx={
-                        isExito
+                        isFalabella
+                          ? {
+                              color: FALABELLA_UI.border,
+                              '&.Mui-checked': {
+                                color: FALABELLA_UI.checkbox,
+                              },
+                            }
+                          : isExito
                           ? {
                               color: EXITO_UI.border,
                               '&.Mui-checked': {

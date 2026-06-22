@@ -1,4 +1,5 @@
 import { ExitoScraper } from './exito';
+import { FalabellaScraper } from './falabella';
 import { PriceData, Product, SearchResult, SearchFilters } from '@/types';
 import { MARKETPLACES } from '@/constants/marketplaces';
 
@@ -18,10 +19,16 @@ interface ScraperProduct {
   updatedAt?: Date;
 }
 
+interface MarketplaceScraper {
+  searchProducts(query: string, options?: { limit?: number; page?: number; category?: string }): Promise<ScraperProduct[]>;
+  scrapePrice(url: string): Promise<PriceData | null>;
+}
+
 export class ScrapingService {
-  private scrapers: Map<string, ExitoScraper> = new Map();
+  private scrapers: Map<string, MarketplaceScraper> = new Map();
 
   constructor() {
+    this.scrapers.set('falabella', new FalabellaScraper());
     this.scrapers.set('exito', new ExitoScraper());
   }
 
